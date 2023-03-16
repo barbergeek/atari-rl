@@ -5,13 +5,14 @@ from pathlib import Path
 from neural import MarioNet
 from collections import deque
 
+import gc
 
 class Mario:
     def __init__(self, state_dim, action_dim, save_dir, checkpoint=None):
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.memory = deque(maxlen=100000)
-        self.batch_size = 32
+        self.batch_size = 8    # was 32 - reducing to hopefully save memory
 
         self.exploration_rate = 1
         self.exploration_rate_decay = 0.99999975
@@ -54,7 +55,7 @@ class Mario:
 
         # EXPLOIT
         else:
-            state = torch.FloatTensor(state).cuda() if self.use_cuda else torch.FloatTensor(state)
+            state = torch.FloatTensor(np.array(state)).cuda() if self.use_cuda else torch.FloatTensor(np.array(state))
             state = state.unsqueeze(0)
             action_values = self.net(state, model='online')
             action_idx = torch.argmax(action_values, axis=1).item()
@@ -62,6 +63,10 @@ class Mario:
         # decrease exploration_rate
         self.exploration_rate *= self.exploration_rate_decay
         self.exploration_rate = max(self.exploration_rate_min, self.exploration_rate)
+
+        # # try saving memory
+        # gc.collect()
+        # torch.cuda.empty_cache()
 
         # increment step
         self.curr_step += 1
@@ -78,13 +83,24 @@ class Mario:
         reward (float),
         done(bool))
         """
-        state = torch.FloatTensor(state).cuda() if self.use_cuda else torch.FloatTensor(state)
-        next_state = torch.FloatTensor(next_state).cuda() if self.use_cuda else torch.FloatTensor(next_state)
-        action = torch.LongTensor([action]).cuda() if self.use_cuda else torch.LongTensor([action])
-        reward = torch.DoubleTensor([reward]).cuda() if self.use_cuda else torch.DoubleTensor([reward])
-        done = torch.BoolTensor([done]).cuda() if self.use_cuda else torch.BoolTensor([done])
+        # state = torch.FloatTensor(np.array(state)).cuda() if self.use_cuda else torch.FloatTensor(np.array(state))
+        # next_state = torch.FloatTensor(np.array(next_state)).cuda() if self.use_cuda else torch.FloatTensor(np.array(next_state))
+        # action = torch.LongTensor([action]).cuda() if self.use_cuda else torch.LongTensor([action])
+        # reward = torch.DoubleTensor([reward]).cuda() if self.use_cuda else torch.DoubleTensor([reward])
+        # done = torch.BoolTensor([done]).cuda() if self.use_cuda else torch.BoolTensor([done])
+
+        # fix memory issue from pull#8 at yfeng997/MadMario
+        state = torch.FloatTensor(state)
+        next_state = torch.FloatTensor(next_state)
+        action = torch.LongTensor([action])
+        reward = torch.DoubleTensor([reward])
+        done = torch.BoolTensor([done]).cuda()
 
         self.memory.append( (state, next_state, action, reward, done,) )
+
+        # # try saving memory
+        # gc.collect()
+        # torch.cuda.empty_cache()
 
 
     def recall(self):
@@ -93,6 +109,10 @@ class Mario:
         """
         batch = random.sample(self.memory, self.batch_size)
         state, next_state, action, reward, done = map(torch.stack, zip(*batch))
+        
+        if self.use_cuda:
+            state, next_state, action, reward, done = state.cuda(), next_state.cuda(), action.cuda(), reward.cuda(), done.cuda()
+            
         return state, next_state, action.squeeze(), reward.squeeze(), done.squeeze()
 
 
@@ -145,6 +165,10 @@ class Mario:
 
         # Backpropagate loss through Q_online
         loss = self.update_Q_online(td_est, td_tgt)
+
+        # # try saving memory
+        # gc.collect()
+        # torch.cuda.empty_cache()
 
         return (td_est.mean().item(), loss)
 

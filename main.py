@@ -9,12 +9,19 @@ import gym_super_mario_bros
 from gym.wrappers import FrameStack, GrayScaleObservation, TransformObservation
 from nes_py.wrappers import JoypadSpace
 
+from gym.spaces import Box
+
 from metrics import MetricLogger
 from agent import Mario
 from wrappers import ResizeObservation, SkipFrame
 
+import gc
+import torch
+
+startTime = datetime.datetime.now()
+
 # Initialize Super Mario environment
-env = gym_super_mario_bros.make('SuperMarioBros-1-1-v0')
+env = gym_super_mario_bros.make('SuperMarioBros-1-1-v3')
 
 # Limit the action-space to
 #   0. walk right
@@ -42,7 +49,8 @@ mario = Mario(state_dim=(4, 84, 84), action_dim=env.action_space.n, save_dir=sav
 
 logger = MetricLogger(save_dir)
 
-episodes = 40000
+#episodes = 40000
+episodes = 100
 
 ### for Loop that train the model num_episodes times by playing the game
 for e in range(episodes):
@@ -79,9 +87,19 @@ for e in range(episodes):
 
     logger.log_episode()
 
+    print("Episode done: ", e)
+
     if e % 20 == 0:
         logger.record(
             episode=e,
             epsilon=mario.exploration_rate,
             step=mario.curr_step
         )
+
+    # # try saving memory
+    # gc.collect()
+    # torch.cuda.empty_cache()
+
+
+delta = datetime.datetime.now() - startTime
+print("Elapsed time = {}".format(delta))

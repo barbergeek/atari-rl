@@ -12,7 +12,7 @@ class Mario:
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.memory = deque(maxlen=100000)
-        self.batch_size = 8    # was 32 - reducing to hopefully save memory
+        self.batch_size = 16 # was 32
 
         self.exploration_rate = 1
         self.exploration_rate_decay = 0.99999975
@@ -22,12 +22,12 @@ class Mario:
         self.curr_step = 0
         self.burnin = 1e5  # min. experiences before training
         self.learn_every = 3   # no. of experiences between updates to Q_online
-        self.sync_every = 1e4   # no. of experiences between Q_target & Q_online sync
+        self.sync_every = 1_000   # no. of experiences between Q_target & Q_online sync
 
-        self.save_every = 5e5   # no. of experiences between saving Mario Net
+        self.save_every = 10_000   # no. of experiences between saving Mario Net
         self.save_dir = save_dir
 
-        self.use_cuda = torch.cuda.is_available()
+        self.use_cuda = False # torch.cuda.is_available()
 
         # Mario's DNN to predict the most optimal action - we implement this in the Learn section
         self.net = MarioNet(self.state_dim, self.action_dim).float()
@@ -90,8 +90,8 @@ class Mario:
         # done = torch.BoolTensor([done]).cuda() if self.use_cuda else torch.BoolTensor([done])
 
         # fix memory issue from pull#8 at yfeng997/MadMario
-        state = torch.FloatTensor(state)
-        next_state = torch.FloatTensor(next_state)
+        state = torch.FloatTensor(np.array(state))
+        next_state = torch.FloatTensor(np.array(next_state))
         action = torch.LongTensor([action])
         reward = torch.DoubleTensor([reward])
         done = torch.BoolTensor([done]).cuda()
@@ -112,7 +112,7 @@ class Mario:
         
         if self.use_cuda:
             state, next_state, action, reward, done = state.cuda(), next_state.cuda(), action.cuda(), reward.cuda(), done.cuda()
-            
+
         return state, next_state, action.squeeze(), reward.squeeze(), done.squeeze()
 
 

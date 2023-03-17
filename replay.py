@@ -10,7 +10,7 @@ from metrics import MetricLogger
 from agent import Mario
 from wrappers import ResizeObservation, SkipFrame
 
-env = gym_super_mario_bros.make('SuperMarioBros-v0')
+env = gym_super_mario_bros.make('SuperMarioBros-v0', apply_api_compatibility=True)
 
 env = JoypadSpace(
     env,
@@ -47,7 +47,8 @@ for e in range(episodes):
 
         action = mario.act(state)
 
-        next_state, reward, done, info = env.step(action)
+        next_state, reward, truncated, terminated, info = env.step(action)
+        done = truncated or terminated
 
         mario.cache(state, next_state, action, reward, done)
 

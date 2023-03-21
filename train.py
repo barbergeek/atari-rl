@@ -61,7 +61,7 @@ for e in range(episodes):
     while True:
 
         # 3. Show environment (the visual) [WIP]
-        # env.render()
+        env.render()
 
         # 4. Run agent on the state
         action = mario.act(state)

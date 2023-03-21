@@ -1,7 +1,10 @@
 
-# MadMario
-PyTorch [official tutorial](https://pytorch.org/tutorials/intermediate/mario_rl_tutorial.html) to build an AI-powered Mario.
+# Pitfall-RL
+Based on PyTorch [official tutorial](https://pytorch.org/tutorials/intermediate/mario_rl_tutorial.html) to build an AI-powered Mario.
 
+## TODO clean & update README.md
+
+--- old README
 ## Set Up
 1. Install [conda](https://www.anaconda.com/products/individual)
 2. Install dependencies with `environment.yml`

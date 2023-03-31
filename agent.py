@@ -2,14 +2,14 @@ import torch
 import random, numpy as np
 from pathlib import Path
 
-from neural import PitfallNet
+from neural import AtariNet
 from collections import deque
 
-class Pitfall:
+class AtariAgent:
     def __init__(self, state_dim, action_dim, save_dir, checkpoint=None):
         self.state_dim = state_dim
         self.action_dim = action_dim
-        self.memory = deque(maxlen=15_000)
+        self.memory = deque(maxlen=20_000)
         self.batch_size = 32
 
         self.exploration_rate = 1
@@ -29,7 +29,7 @@ class Pitfall:
         print("Use CUDA: {}".format(self.use_cuda))
 
         # Mario's DNN to predict the most optimal action - we implement this in the Learn section
-        self.net = PitfallNet(self.state_dim, self.action_dim).float()
+        self.net = AtariNet(self.state_dim, self.action_dim).float()
         if self.use_cuda:
             self.net = self.net.to(device='cuda')
         if checkpoint:
@@ -161,7 +161,7 @@ class Pitfall:
 
 
     def save(self):
-        save_path = self.save_dir / f"pitfall_net_{int(self.curr_step // self.save_every)}.chkpt"
+        save_path = self.save_dir / f"atari_net_{int(self.curr_step // self.save_every)}.chkpt"
         torch.save(
             dict(
                 model=self.net.state_dict(),
@@ -169,7 +169,7 @@ class Pitfall:
             ),
             save_path
         )
-        print(f"PitfallNet saved to {save_path} at step {self.curr_step}")
+        print(f"AtariNet saved to {save_path} at step {self.curr_step}")
 
 
     def load(self, load_path):

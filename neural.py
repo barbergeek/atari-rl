@@ -1,7 +1,7 @@
 from torch import nn
 import copy
 
-class PitfallNet(nn.Module):
+class AtariNet(nn.Module):
     '''mini cnn structure
     input -> (conv2d + relu) x 3 -> flatten -> (dense + relu) x 2 -> output
     '''

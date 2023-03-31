@@ -2,16 +2,14 @@ import torch
 import random, numpy as np
 from pathlib import Path
 
-from neural import MarioNet
+from neural import PitfallNet
 from collections import deque
 
-import gc
-
-class Mario:
+class Pitfall:
     def __init__(self, state_dim, action_dim, save_dir, checkpoint=None):
         self.state_dim = state_dim
         self.action_dim = action_dim
-        self.memory = deque(maxlen=15000)
+        self.memory = deque(maxlen=15_000)
         self.batch_size = 32
 
         self.exploration_rate = 1
@@ -24,13 +22,14 @@ class Mario:
         self.learn_every = 3   # no. of experiences between updates to Q_online
         self.sync_every = 1e4   # no. of experiences between Q_target & Q_online sync
 
-        self.save_every = 5e4   # no. of experiences between saving Mario Net
+        self.save_every = 1e6   # no. of experiences between saving Mario Net
         self.save_dir = save_dir
 
         self.use_cuda = torch.cuda.is_available()
+        print("Use CUDA: {}".format(self.use_cuda))
 
         # Mario's DNN to predict the most optimal action - we implement this in the Learn section
-        self.net = MarioNet(self.state_dim, self.action_dim).float()
+        self.net = PitfallNet(self.state_dim, self.action_dim).float()
         if self.use_cuda:
             self.net = self.net.to(device='cuda')
         if checkpoint:
@@ -64,10 +63,6 @@ class Mario:
         self.exploration_rate *= self.exploration_rate_decay
         self.exploration_rate = max(self.exploration_rate_min, self.exploration_rate)
 
-        # # try saving memory
-        # gc.collect()
-        # torch.cuda.empty_cache()
-
         # increment step
         self.curr_step += 1
         return action_idx
@@ -97,10 +92,6 @@ class Mario:
         done = torch.BoolTensor([done])
 
         self.memory.append( (state, next_state, action, reward, done,) )
-
-        # # try saving memory
-        # gc.collect()
-        # torch.cuda.empty_cache()
 
 
     def recall(self):
@@ -166,15 +157,11 @@ class Mario:
         # Backpropagate loss through Q_online
         loss = self.update_Q_online(td_est, td_tgt)
 
-        # # try saving memory
-        # gc.collect()
-        # torch.cuda.empty_cache()
-
         return (td_est.mean().item(), loss)
 
 
     def save(self):
-        save_path = self.save_dir / f"mario_net_{int(self.curr_step // self.save_every)}.chkpt"
+        save_path = self.save_dir / f"pitfall_net_{int(self.curr_step // self.save_every)}.chkpt"
         torch.save(
             dict(
                 model=self.net.state_dict(),
@@ -182,7 +169,7 @@ class Mario:
             ),
             save_path
         )
-        print(f"MarioNet saved to {save_path} at step {self.curr_step}")
+        print(f"PitfallNet saved to {save_path} at step {self.curr_step}")
 
 
     def load(self, load_path):

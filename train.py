@@ -4,36 +4,26 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 import random, datetime
 from pathlib import Path
 
-import gym
-import gym_super_mario_bros
-from gym.wrappers import FrameStack, GrayScaleObservation, TransformObservation
-from nes_py.wrappers import JoypadSpace
+import gymnasium as gym
+from gymnasium.wrappers import FrameStack, GrayScaleObservation, TransformObservation
 
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metrics import MetricLogger
-from agent import Mario
+from agent import Pitfall
 from wrappers import ResizeObservation, SkipFrame
 
-import gc
+#import cv2
+
 import torch
 
 startTime = datetime.datetime.now()
 
-# Initialize Super Mario environment
-env = gym_super_mario_bros.make('SuperMarioBros-v3', apply_api_compatibility=True)
-
-# Limit the action-space to
-#   0. walk right
-#   1. jump right
-env = JoypadSpace(
-    env,
-    [['right'],
-    ['right', 'A']]
-)
+# Initialize game environment
+env = gym.make('ALE/Pitfall-v5')
 
 # Apply Wrappers to environment
-env = SkipFrame(env, skip=4)
+#env = SkipFrame(env, skip=4) # ALE automatically skips frames, don't do it again...
 env = GrayScaleObservation(env, keep_dim=False)
 env = ResizeObservation(env, shape=84)
 env = TransformObservation(env, f=lambda x: x / 255.)
@@ -44,8 +34,8 @@ env.reset()
 save_dir = Path('checkpoints') / datetime.datetime.now().strftime('%Y-%m-%dT%H-%M-%S')
 save_dir.mkdir(parents=True)
 
-checkpoint = None
-mario = Mario(state_dim=(4, 84, 84), action_dim=env.action_space.n, save_dir=save_dir, checkpoint=checkpoint)
+checkpoint = None # Path('pitfall_net_40k_episodes.chkpt')
+pitfall = Pitfall(state_dim=(4, 84, 84), action_dim=env.action_space.n, save_dir=save_dir, checkpoint=checkpoint)
 
 logger = MetricLogger(save_dir)
 
@@ -61,20 +51,23 @@ for e in range(episodes):
     while True:
 
         # 3. Show environment (the visual) [WIP]
-        env.render()
+        #env.render()
+        # img = cv2.resize(state, (480, 480), 
+        #                 interpolation=cv2.INTER_CUBIC)
+        # cv2.imshow('Frame', img)
 
         # 4. Run agent on the state
-        action = mario.act(state)
+        action = pitfall.act(state)
 
         # 5. Agent performs action
         next_state, reward, truncated, terminated, info = env.step(action)
         done = truncated or terminated
 
         # 6. Remember
-        mario.cache(state, next_state, action, reward, done)
+        pitfall.cache(state, next_state, action, reward, done)
 
         # 7. Learn
-        q, loss = mario.learn()
+        q, loss = pitfall.learn()
 
         # 8. Logging
         logger.log_step(reward, loss, q)
@@ -83,22 +76,20 @@ for e in range(episodes):
         state = next_state
 
         # 10. Check if end of game
-        if done or info['flag_get']:
+        if done:
             break
 
     logger.log_episode()
 
-    #print("Episode done: {} - Steps: {}".format(e,mario.curr_step))
-
     if e % 50 == 0:
         logger.record(
             episode=e,
-            epsilon=mario.exploration_rate,
-            step=mario.curr_step
+            epsilon=pitfall.exploration_rate,
+            step=pitfall.curr_step
         )
 
 # save the final model
-mario.save()
+pitfall.save()
 
 delta = datetime.datetime.now() - startTime
 print("Elapsed time = {}".format(delta))

@@ -7,15 +7,9 @@ from pathlib import Path
 import gymnasium as gym
 from gymnasium.wrappers import FrameStack, GrayScaleObservation, TransformObservation
 
-from gymnasium.spaces import Box
-
 from metrics import MetricLogger
 from agent import AtariAgent
 from wrappers import ResizeObservation, SkipFrame
-
-#import cv2
-
-import torch
 
 startTime = datetime.datetime.now()
 
@@ -49,12 +43,6 @@ for e in range(episodes):
 
     # Play the game!
     while True:
-
-        # 3. Show environment (the visual) [WIP]
-        #env.render()
-        # img = cv2.resize(state, (480, 480), 
-        #                 interpolation=cv2.INTER_CUBIC)
-        # cv2.imshow('Frame', img)
 
         # 4. Run agent on the state
         action = game.act(state)

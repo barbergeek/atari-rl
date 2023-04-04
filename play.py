@@ -22,7 +22,7 @@ save_dir = Path('checkpoints') / datetime.datetime.now().strftime('%Y-%m-%dT%H-%
 save_dir.mkdir(parents=True)
 
 #checkpoint = Path('checkpoints/2023-03-16T19-37-35/mario_net_1.chkpt')
-checkpoint = Path('frogger_100k_episodes.chkpt')
+checkpoint = Path('frogger_200k_episodes.chkpt')
 game = AtariAgent(state_dim=(4, 84, 84), action_dim=env.action_space.n, save_dir=save_dir, checkpoint=checkpoint)
 game.exploration_rate = game.exploration_rate_min
 

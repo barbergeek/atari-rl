@@ -28,12 +28,12 @@ env.reset()
 save_dir = Path('checkpoints') / datetime.datetime.now().strftime('%Y-%m-%dT%H-%M-%S')
 save_dir.mkdir(parents=True)
 
-checkpoint = Path('frogger_50k_episodes.chkpt')
+checkpoint = Path('frogger_100k_episodes.chkpt')
 game = AtariAgent(state_dim=(4, 84, 84), action_dim=env.action_space.n, save_dir=save_dir, checkpoint=checkpoint)
 
 logger = MetricLogger(save_dir)
 
-episodes = 50000
+episodes = 100000
 #episodes = 100
 
 ### for Loop that train the model num_episodes times by playing the game

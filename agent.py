@@ -9,7 +9,7 @@ class AtariAgent:
     def __init__(self, state_dim, action_dim, save_dir, checkpoint=None):
         self.state_dim = state_dim
         self.action_dim = action_dim
-        self.memory = deque(maxlen=20_000)
+        self.memory = deque(maxlen=100_000)
         self.batch_size = 32
 
         self.exploration_rate = 1

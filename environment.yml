@@ -1,4 +1,4 @@
-name: lander-rl
+name: galaxian-rl
 channels:
   - conda-forge
   - nvidia
@@ -179,4 +179,4 @@ dependencies:
       - triton==2.0.0
       - typing-extensions==4.5.0
       - zipp==3.15.0
-prefix: /home/scott/anaconda3/envs/lander-rl
+prefix: /home/scott/anaconda3/envs/galaxian-rl

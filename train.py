@@ -14,7 +14,7 @@ from wrappers import ResizeObservation, SkipFrame
 startTime = datetime.datetime.now()
 
 # Initialize game environment
-env = gym.make('ALE/Frogger-v5')
+env = gym.make('ALE/Galaxian-v5')
 
 # Apply Wrappers to environment
 #env = SkipFrame(env, skip=4) # ALE automatically skips frames, don't do it again...

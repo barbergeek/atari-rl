@@ -8,7 +8,7 @@ from metrics import MetricLogger
 from agent import AtariAgent
 from wrappers import ResizeObservation, SkipFrame
 
-env = gym.make('ALE/Frogger-v5') #,render_mode='human')
+env = gym.make('ALE/Frogger-v5',render_mode='human')
 
 # env = SkipFrame(env, skip=4)
 env = GrayScaleObservation(env, keep_dim=False)
